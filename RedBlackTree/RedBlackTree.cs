@@ -14,9 +14,157 @@ namespace RedBlackTree
     class RedBlackTree<T> : Tree<T> where T : IComparable
     {
         private Node<T> _root;
+
         public void delete(T item)
         {
-            throw new NotImplementedException();
+            Node<T> v = this.search(item);
+            if (v == null)
+                return;
+            this.delete(v);
+        }
+        private void delete(Node<T> v)
+        {
+            Node<T> u = bst_replace(v);
+            bool vu_black = v.Color == COLOR.BLACK && (u == null || u.Color == COLOR.BLACK);
+            if (u == null)
+            {
+                if (v.Val.CompareTo(this._root.Val) == 0)
+                    this._root = null;
+                else
+                {
+                    if (vu_black)
+                        fix_double_black(v);
+                    else
+                    {
+                        if (v.sibling() != null)
+                        {
+                            v.sibling().Color = COLOR.RED;
+                        }
+                    }
+                    if (v.on_right())
+                        v.Parent.Right = null;
+                    else
+                        v.Parent.Left = null;
+                }
+                return;
+            }
+            if (v.Left == null || v.Right == null)
+            {
+                if (v == this._root)
+                {
+                    v.Val = u.Val;
+                    v.Left = null;
+                    v.Right = null;
+                }
+                else
+                {
+                    if (v.on_right())
+                        v.Parent.Right = u;
+                    else
+                        v.Parent.Left = u;
+                    u.Parent = v.Parent;
+                    if (vu_black)
+                        fix_double_black(u);
+                    else
+                        u.Color = COLOR.BLACK;
+                }
+                return;
+            }
+            this.swap_values(u, v);
+            this.delete(u);
+        }
+
+        private void fix_double_black(Node<T> v)
+        {
+            if (v == this._root)
+                return;
+            Node<T> sibling = v.sibling(), parent = v.Parent;
+            if (sibling == null)
+                fix_double_black(parent);
+            else
+            {
+                if (sibling.Color == COLOR.RED)
+                {
+                    parent.Color = COLOR.RED;
+                    sibling.Color = COLOR.BLACK;
+                    if (sibling.on_right())
+                        left_rotate(parent);
+                    else
+                        right_rotate(parent);
+                    fix_double_black(v);
+                }
+                else
+                {
+                    if (sibling.has_red_child())
+                    {
+                        if (sibling.Right != null && sibling.Right.Color == COLOR.RED)
+                        {
+                            if (sibling.on_right())
+                            {
+                                sibling.Right.Color = sibling.Color;
+                                sibling.Color = parent.Color;
+                                left_rotate(parent);
+                            }
+                            else
+                            {
+                                sibling.Right.Color = parent.Color;
+                                left_rotate(sibling);
+                                right_rotate(parent);
+                            }
+                        }
+                        else
+                        {
+                            if (sibling.on_right())
+                            {
+                                sibling.Left.Color = parent.Color;
+                                right_rotate(sibling);
+                                left_rotate(parent);
+                            }
+                            else
+                            {
+                                sibling.Left.Color = sibling.Color;
+                                sibling.Color = parent.Color;
+                                right_rotate(parent);
+                            }
+                        }
+                        parent.Color = COLOR.BLACK;
+                    }
+                    else
+                    {
+                        sibling.Color = COLOR.RED;
+                        if (parent.Color == COLOR.BLACK)
+                            fix_double_black(parent);
+                        else
+                            parent.Color = COLOR.BLACK;
+                    }
+                }
+            }
+        }
+
+        private Node<T> bst_replace(Node <T> n)
+        {
+            if (n.Left != null && n.Right != null)
+                return this.successosr(n.Left);
+            if (n.Left == null && n.Right == null)
+                return null;
+            if (n.Right == null)
+                return n.Right;
+            else
+                return n.Left;
+        }
+
+        private Node<T> successosr(Node <T> n)
+        {
+            while (n.Right != null)
+                n = n.Right;
+            return n;
+        }
+
+        private void swap_values(Node<T> n1, Node<T> n2)
+        {
+            T temp = n1.Val;
+            n1.Val = n2.Val;
+            n2.Val = temp;
         }
 
         public void insert(T item)
@@ -30,8 +178,6 @@ namespace RedBlackTree
             }
             this.bst_insert(_root, new_item);
             fix_red_red(new_item);
-            this.print();
-            Console.WriteLine("______________________________________________");
         }
 
         private Node<T> bst_insert(Node<T> root, Node<T> new_item)

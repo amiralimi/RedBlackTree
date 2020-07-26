@@ -79,9 +79,38 @@ namespace Node
             this._parent = new_parent;
         }
 
+        public Node<T> sibling()
+        {
+            if (this._parent == null)
+                return null;
+            if (this.on_right())
+                return this._parent.Left;
+            else
+                return this._parent._right;
+        }
+
+        public static bool operator ==(Node<T> n1, Node<T> n2)
+        {
+            if (ReferenceEquals(n1, null) && ReferenceEquals(n2, null))
+                return true;
+            if (ReferenceEquals(n1, null) || ReferenceEquals(n2, null))
+                return false;
+            if (n1.Val.CompareTo(n2.Val) == 0)
+                return true;
+            else
+                return false;
+        }
+
+        public bool has_red_child()
+        {
+            return ((this._right != null && this._right.Color == COLOR.RED) || (this._left != null && this._left.Color == COLOR.RED));
+        }
+
+        public static bool operator !=(Node<T> n1, Node<T> n2) { return !(n1 == n2); }
+
         public new string ToString => this._val + " " + this._color +
                 " => l:" + (this._left != null ? this._left.Val.ToString() : "-") +
-                " r:" + (this._right != null ? this._right.Val.ToString() : "-") + 
+                " r:" + (this._right != null ? this._right.Val.ToString() : "-") +
                 " parent: " + (this._parent != null ? this._parent.Val.ToString() : "-");
     }
 
